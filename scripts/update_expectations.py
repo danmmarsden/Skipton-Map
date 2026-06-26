@@ -12,6 +12,7 @@ import openpyxl
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 HTML_PATH = ROOT / "index.html"
+DATA_PATH = ROOT / "map-data.js"
 WORKBOOK_PATH = ROOT / "Skipton - CGI partners travel.xlsx"
 SHEET_NAME = "Final View"
 
@@ -60,13 +61,14 @@ def map_locations():
 
     skipton = [float(value.strip()) for value in skipton_match.group(1).split(",")]
 
+    data_text = DATA_PATH.read_text()
     centroids_match = re.search(
-        r"const districtCentroids = (.*?);\nconst skipton(?:Address)?\b",
-        html,
+        r'"districtCentroids": (.*?),\n  "fullPostcodeLocations"',
+        data_text,
         flags=re.S,
     )
     if not centroids_match:
-        raise RuntimeError("Could not find district centroids in index.html")
+        raise RuntimeError("Could not find district centroids in map-data.js")
 
     return skipton, json.loads(centroids_match.group(1))
 

@@ -9,6 +9,7 @@ import openpyxl
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 HTML_PATH = ROOT / "index.html"
+DATA_PATH = ROOT / "map-data.js"
 WORKBOOK_PATH = ROOT / "Skipton - CGI partners travel.xlsx"
 SHEET_NAME = "Final View"
 
@@ -92,13 +93,25 @@ def spreadsheet_rows():
 
 
 def current_centroids(html):
+    if DATA_PATH.exists():
+        data_text = DATA_PATH.read_text()
+        match = re.search(
+            r'"districtCentroids": (.*?),\n  "fullPostcodeLocations"',
+            data_text,
+            flags=re.S,
+        )
+        if match:
+            centroids = json.loads(match.group(1))
+            centroids.update(EXTRA_CENTROIDS)
+            return centroids
+
     match = re.search(
         r"const districtCentroids = (.*?);\nconst (?:fullPostcodeLocations|skipton(?:Address)?)\b",
         html,
         flags=re.S,
     )
     if not match:
-        raise RuntimeError("Could not find districtCentroids block in index.html")
+        raise RuntimeError("Could not find districtCentroids block in map data or index.html")
 
     centroids = json.loads(match.group(1))
     centroids.update(EXTRA_CENTROIDS)
@@ -110,34 +123,23 @@ def main():
     rows = spreadsheet_rows()
     centroids = current_centroids(html)
 
+    payload = {
+        "colleagues": rows,
+        "districtCentroids": dict(sorted(centroids.items())),
+        "fullPostcodeLocations": dict(sorted(FULL_POSTCODE_LOCATIONS.items())),
+    }
     generated = (
         "// Generated from Final View in Skipton - CGI partners travel.xlsx.\n"
-        "const data = "
-        + json.dumps(rows, indent=2, ensure_ascii=True)
+        "window.skiptonMapData = "
+        + json.dumps(payload, indent=2, ensure_ascii=True)
         + ";\n"
-        + "const districtCentroids = "
-        + json.dumps(centroids, indent=2, sort_keys=True)
-        + ";\n"
-        + "const fullPostcodeLocations = "
-        + json.dumps(FULL_POSTCODE_LOCATIONS, indent=2, sort_keys=True)
-        + ";"
     )
 
-    updated, replacements = re.subn(
-        r"(?:// Generated from .*?\n)?const data = .*?;\nconst districtCentroids = .*?;(?:\nconst fullPostcodeLocations = .*?;)?",
-        generated,
-        html,
-        count=1,
-        flags=re.S,
-    )
-    if replacements == 0:
-        raise RuntimeError("No generated block was replaced in index.html")
-
-    if updated != html:
-        HTML_PATH.write_text(updated)
-        print(f"Wrote {len(rows)} spreadsheet rows into {HTML_PATH.name}")
+    if DATA_PATH.exists() and DATA_PATH.read_text() == generated:
+        print(f"{DATA_PATH.name} is already up to date with {len(rows)} spreadsheet rows")
     else:
-        print(f"{HTML_PATH.name} is already up to date with {len(rows)} spreadsheet rows")
+        DATA_PATH.write_text(generated)
+        print(f"Wrote {len(rows)} spreadsheet rows into {DATA_PATH.name}")
 
     print(f"Centroid districts: {len(centroids)}")
 
