@@ -231,9 +231,9 @@ window.skiptonMapData = {
     },
     {
       "name": "Himaja Gandham",
-      "postcode": "M50",
-      "outward": "M50",
-      "is_full": false,
+      "postcode": "M33 7GG",
+      "outward": "M33",
+      "is_full": true,
       "role": "Cloud Engineer",
       "commute": 3,
       "owner": "Dan",
@@ -904,6 +904,10 @@ window.skiptonMapData = {
     "LS25 6PQ": [
       53.795993,
       -1.23728
+    ],
+    "M33 7GG": [
+      53.424346,
+      -2.322915
     ],
     "PR1 9HS": [
       53.739046,
