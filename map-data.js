@@ -495,13 +495,13 @@ window.skiptonMapData = {
     },
     {
       "name": "Paresh Rathod",
-      "postcode": null,
-      "outward": null,
-      "is_full": false,
+      "postcode": "LS16 6JN",
+      "outward": "LS16",
+      "is_full": true,
       "role": "Business Analyst",
-      "commute": null,
+      "commute": 2,
       "owner": "Romy",
-      "expectation": null,
+      "expectation": "3 days per week",
       "spoken_to": null,
       "outcome": null
     },
@@ -900,6 +900,10 @@ window.skiptonMapData = {
     "HA2 9QL": [
       51.569997,
       -0.381045
+    ],
+    "LS16 6JN": [
+      53.840085,
+      -1.598052
     ],
     "LS25 6PQ": [
       53.795993,
